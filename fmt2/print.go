@@ -913,17 +913,10 @@ func (p *pp) printValue(value reflect.Value, verb rune, depth int) {
 			p.buf.writeByte(']')
 		}
 	case reflect.Pointer:
-		// pointer to array or slice or struct? ok at top level
-		// but not embedded (avoid loops)
-		if depth == 0 && f.UnsafePointer() != nil {
-			switch a := f.Elem(); a.Kind() {
-			case reflect.Array, reflect.Slice, reflect.Struct, reflect.Map:
-				p.buf.writeByte('&')
-				p.printValue(a, verb, depth+1)
-				return
-			}
+		for value.Kind() == reflect.Pointer {
+			value = value.Elem()
 		}
-		fallthrough
+		p.printValue(value, verb, depth+1)
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		p.fmtPointer(f, verb)
 	default:
